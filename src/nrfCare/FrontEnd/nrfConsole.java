@@ -7,13 +7,14 @@ import java.nio.channels.SelectionKey;
 import java.nio.channels.SocketChannel;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
-import nrfCare.Component.socketServer;
+import nrfCare.Component.*;
 
 public class nrfConsole {
 
@@ -98,15 +99,19 @@ public class nrfConsole {
 
 
 class LogThread implements Runnable {
-	Logger logger = Logger.getLogger(nrfConsole.class); //Server为类名
+	Logger logger = Logger.getLogger(nrfConsole.class); //Server为类名	
+	Config config = XMLReader.loadconfig();
+	String socketip= config.socketip;
+	String socketport = config.socketport;
 	
-    //…
+
+    //…Utility
 
 	public void run() {
 		
 		PropertyConfigurator.configure("log4j.properties");
 		
-		socketServer server = new socketServer("localhost", 7799);  
+		socketServer server = new socketServer(socketip,Integer.parseInt(socketport));  
         server.start();  
 		 
 //		while(true)
@@ -183,6 +188,8 @@ class SendThread implements Runnable {
 		}
 		catch(java.nio.channels.ClosedChannelException e)
 		{
+			System.out.println(String.format("handleWrite %1$s", e.toString()));
+			
 			logger.error(String.format("handleWrite %1$s", e.toString()));
 		}
 	}
