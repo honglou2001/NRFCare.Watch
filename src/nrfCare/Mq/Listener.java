@@ -1,6 +1,9 @@
 package nrfCare.Mq;
 
 
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageListener;
@@ -12,6 +15,8 @@ import net.sf.json.JSONSerializer;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONException;
+import nrfCare.Netty.SimpleServerHandler;
+import nrfCare.Utility.ByteConverter;
 
 
 import org.apache.activemq.command.ActiveMQObjectMessage;
@@ -34,17 +39,21 @@ public class Listener implements MessageListener {
 				
 				System.out.println(String.format("weight:%s,price：%s.phone:%s", info.getWeight(),info.getPrice(), info.getPhone()));
 
+				String senddatastring =String.format("%s|%s|%s", info.getWeight(),info.getPrice(), info.getPhone());
+				
+				byte[] byteToSend = ByteConverter.GetSendData(senddatastring);
+				
+				SimpleServerHandler.SendToClient("01014C4C", byteToSend);
 				
 			} catch (JMSException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
+			} catch (UnsupportedEncodingException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
-			
-			
-			
-			//MSMQInfo obj = (MSMQInfo)JSONSerializer.d(jsonStr);
-
-
+									
+//MSMQInfo obj = (MSMQInfo)JSONSerializer.d(jsonStr);
 //		if (message instanceof ObjectMessage) {
 //			ObjectMessage oMsg = (ObjectMessage) message;
 //
@@ -63,7 +72,7 @@ public class Listener implements MessageListener {
 //				}
 //			}
 //		}
-
-
 	}
+	
+
 }

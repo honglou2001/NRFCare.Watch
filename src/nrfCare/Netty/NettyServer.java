@@ -52,28 +52,23 @@ public class NettyServer {
       //退出，释放线程等相关资源
       bossGroup.shutdownGracefully();
       workerGroup.shutdownGracefully();
-    }
-
-    
+    }    
   }
 
   private class ChildChannelHandler extends ChannelInitializer<SocketChannel>{
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-
       ch.pipeline().addLast(new SimpleServerHandler());
     }
   }
+    
+  public static void StartSocketServer()
+  {	  	  
+	  new NettyServer().nettyServer();	
+  }
   
-  
-  public static void main(String[] args) throws Exception {
-	  
+  public static void main(String[] args) throws Exception {	
 	  PropertyConfigurator.configure("log4j.properties");	
-	  
-	
-	  
-	  new NettyServer().nettyServer();
-	  
-	 
+	  StartSocketServer();
   }
 }

@@ -11,7 +11,10 @@ import javax.jms.Session;
 import javax.jms.TextMessage;
 import javax.jms.Topic;
 
+import nrfCare.Netty.NettyServer;
+
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.log4j.PropertyConfigurator;
 
 public class MqConsumer {
 
@@ -80,8 +83,36 @@ public class MqConsumer {
 
 	public static void main(String[] args) throws JMSException {
 
-		MqConsumer consumer = new MqConsumer();
-		consumer.setListener();
+		//初始化log配置
+		PropertyConfigurator.configure("log4j.properties");		  	  		  
+		
+		
+		 new Thread() {
+           @Override
+           public void run() {
+        	   MqConsumer consumer;
+			try {
+				consumer = new MqConsumer();
+				consumer.setListener();
+			} catch (JMSException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+       		
+           }
+       }.start();
+
+		
+//		//tcp监听
+//		NettyServer.StartSocketServer();
+		
+		   //这是主进程
+        System.out.println("主线程：" + Thread.currentThread().getName());
+        Runnable r = new MyThread();
+        Thread t = new Thread(r);
+        t.start();
+
+
 
 		// MqConsumer consumer = new MqConsumer();
 		// for (String stock : args) {
@@ -96,5 +127,39 @@ public class MqConsumer {
 	public Session getSession() {
 		return session;
 	}
+	
+    
 
+}
+
+class MyThreadConsumer implements Runnable {
+	 
+    @Override
+    public void run() {
+        System.out.println("第2个线程：" + Thread.currentThread().getName());
+         
+      //tcp监听
+		NettyServer.StartSocketServer();
+
+ 
+    }
+}
+
+class MyThread implements Runnable {
+	 
+    @Override
+    public void run() {
+        System.out.println("第2个线程：" + Thread.currentThread().getName());
+         
+      //tcp监听
+		NettyServer.StartSocketServer();
+		
+//        new Thread() {
+//            @Override
+//            public void run() {
+//                System.out.println("第3个线程：" + Thread.currentThread().getName());
+//            }
+//        }.start();
+ 
+    }
 }
