@@ -84,9 +84,7 @@ public class MqConsumer {
 	public static void main(String[] args) throws JMSException {
 
 		//初始化log配置
-		PropertyConfigurator.configure("log4j.properties");		  	  		  
-		
-		
+		PropertyConfigurator.configure("log4j.properties");		  	  		  			
 		 new Thread() {
            @Override
            public void run() {
@@ -97,8 +95,7 @@ public class MqConsumer {
 			} catch (JMSException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-			}
-       		
+			}       		
            }
        }.start();
 
@@ -128,20 +125,15 @@ public class MqConsumer {
 		return session;
 	}
 	
-    
-
 }
 
 class MyThreadConsumer implements Runnable {
 	 
     @Override
     public void run() {
-        System.out.println("第2个线程：" + Thread.currentThread().getName());
-         
+        System.out.println("第2个线程：" + Thread.currentThread().getName());         
       //tcp监听
 		NettyServer.StartSocketServer();
-
- 
     }
 }
 
@@ -149,11 +141,9 @@ class MyThread implements Runnable {
 	 
     @Override
     public void run() {
-        System.out.println("第2个线程：" + Thread.currentThread().getName());
-         
+        System.out.println("第2个线程：" + Thread.currentThread().getName());         
       //tcp监听
-		NettyServer.StartSocketServer();
-		
+		NettyServer.StartSocketServer();		
 //        new Thread() {
 //            @Override
 //            public void run() {
