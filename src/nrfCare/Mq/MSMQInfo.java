@@ -45,6 +45,33 @@ public class MSMQInfo implements Serializable {
 	public void setType(byte type) {
 		this.type = type;
 	}
-	
+	private String clientID;
+	public String getClientID() {
+		return clientID;
+	}
+	public void setClientID(String clientID) {
+		this.clientID = clientID;
+	}
+	private String pigid;
+	public String getPigid() {
+		return pigid;
+	}
+	public void setPigid(String pigid) {
+		this.pigid = pigid;
+	}
+	private String porkid;
+	public String getPorkid() {
+		return porkid;
+	}
+	public void setPorkid(String porkid) {
+		this.porkid = porkid;
+	}
+	private String paytype;
+	public String getPaytype() {
+		return paytype;
+	}
+	public void setPaytype(String paytype) {
+		this.paytype = paytype;
+	}
 	
 }

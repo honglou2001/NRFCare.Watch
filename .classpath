@@ -13,5 +13,6 @@
 	<classpathentry kind="lib" path="lib/json-lib-2.4-jdk15.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.11.jar"/>
 	<classpathentry kind="lib" path="lib/netty-all-4.0.26.Final.jar"/>
+	<classpathentry kind="lib" path="lib/wrapper.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

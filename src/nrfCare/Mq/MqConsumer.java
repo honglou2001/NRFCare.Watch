@@ -1,5 +1,8 @@
 package nrfCare.Mq;
 
+import java.io.UnsupportedEncodingException;
+import java.sql.Timestamp;
+
 import javax.jms.Connection;
 import javax.jms.ConnectionFactory;
 import javax.jms.Destination;
@@ -12,12 +15,19 @@ import javax.jms.TextMessage;
 import javax.jms.Topic;
 
 import nrfCare.Netty.NettyServer;
+import nrfCare.Netty.NettyServerHandler;
+import nrfCare.Utility.ByteConverter;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
+import org.tanukisoftware.wrapper.WrapperListener;
+import org.tanukisoftware.wrapper.WrapperManager;
 
-public class MqConsumer {
+public class MqConsumer   implements   WrapperListener {
 
+	private static final Logger logger = Logger.getLogger(MqConsumer.class);	
+	
 	private static String brokerURL = "tcp://localhost:61616";
 	private static transient ConnectionFactory factory;
 	private transient Connection connection;
@@ -26,12 +36,20 @@ public class MqConsumer {
 	Destination destination;
 
 
-	public MqConsumer() throws JMSException {
+	private void startMQConn() throws JMSException {
 		factory = new ActiveMQConnectionFactory(brokerURL);
 		connection = factory.createConnection();		
 		connection.setClientID("guangdong3"); 		  
 		connection.start();
 		session = connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
+		
+		try {
+			this.synchroReceive();
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}   
+		//this.ansynchroReceive();   
 	}
 
 	public void close() throws JMSException {
@@ -39,15 +57,68 @@ public class MqConsumer {
 			connection.close();
 		}
 	}
+	
+	public void synchroReceive() throws InterruptedException {
+		try {
+			
+			destination = session.createQueue("QualityQueue");
+			MessageConsumer messageConsumer = this.getSession().createConsumer(destination, "filter='quality'");														
+			logger.info("synchroReceive");			
+			while(true)
+			{
+				Message msg = messageConsumer.receive(2000);				
+				TextMessage textMsg = (TextMessage) msg;				
+//				Timestamp ts = ByteConverter.getTimeStamp();
+//				logger.info("MQ Timestamp:"+ts.toString());				
+				if (null != msg)
+				{					
+					try {
+						System.out.println(textMsg.getText());						
+						String jsonStr = textMsg.getText();						
+						Listener.SendMsg(jsonStr);
+																					
+					} catch (JMSException e) {
+						logger.error("mq consume JMSException："+e.toString());  
+						// TODO Auto-generated catch block				
+						e.printStackTrace();
 
-	public void setListener() {
+					} catch (UnsupportedEncodingException e) {
+						logger.error("mq consume UnsupportedEncodingException："+e.toString()); 
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					catch (Exception e) {
+						logger.error("mq consume Exception："+e.toString());  
+						// TODO Auto-generated catch block				
+						e.printStackTrace();
+					} 					
+					logger.info("activemq receivec"+textMsg);
+				}				
+			}
+
+		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			logger.error("JMSException");
+			try {
+	            this.close();
+	        } catch (Throwable ignore) {
+	        }
+			e.printStackTrace();
+		}
+		
+
+	}
+
+	public void ansynchroReceive() {
 		try {
 			
 //			destination = session.createTopic("QualityQueue2");		
 //			consumer = session.createDurableSubscriber((Topic)destination,"guangdong1");
 			destination = session.createQueue("QualityQueue");
-			MessageConsumer messageConsumer = this.getSession().createConsumer(destination, "filter='quality'");
+			MessageConsumer messageConsumer = this.getSession().createConsumer(destination, "filter='quality'");									
 			messageConsumer.setMessageListener(new Listener());
+			
+			logger.info("ansynchroReceive");
 
 //			MessageListener ml = new MessageListener() {
 //				@Override
@@ -70,7 +141,7 @@ public class MqConsumer {
 
 		} catch (JMSException e) {
 			// TODO Auto-generated catch block
-			
+			logger.error("JMSException");
 			try {
 	            this.close();
 	        } catch (Throwable ignore) {
@@ -83,59 +154,109 @@ public class MqConsumer {
 
 	public static void main(String[] args) throws JMSException {
 
-		//初始化log配置
-		PropertyConfigurator.configure("log4j.properties");		  	  		  			
-		 new Thread() {
-           @Override
-           public void run() {
-        	   MqConsumer consumer;
-			try {
-				consumer = new MqConsumer();
-				consumer.setListener();
-			} catch (JMSException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}       		
-           }
-       }.start();
-
+		WrapperManager.start(new MqConsumer(), args);
 		
-//		//tcp监听
-//		NettyServer.StartSocketServer();
 		
-		   //这是主进程
-        System.out.println("主线程：" + Thread.currentThread().getName());
-        Runnable r = new MyThread();
-        Thread t = new Thread(r);
-        t.start();
-
-
-
-		// MqConsumer consumer = new MqConsumer();
-		// for (String stock : args) {
-		// Destination destination = consumer.getSession().createTopic("STOCKS."
-		// + stock);
-		// MessageConsumer messageConsumer =
-		// consumer.getSession().createConsumer(destination);
-		// messageConsumer.setMessageListener(new Listener());
-		// }
 	}
 
+	public MqConsumer()
+	{
+		
+	}
+	private void StartAPP()
+	{
+
+		//初始化log配置
+				 PropertyConfigurator.configure("log4j.properties");		  	  		  			
+				 new Thread() {
+		           @Override
+		           public void run() {
+		        	   
+		       		try {
+		    			startMQConn();
+		    		} catch (JMSException e) {
+		    			// TODO Auto-generated catch block
+		    			e.printStackTrace();
+		    		}
+		    		
+		       		
+//		        	MqConsumer consumer;
+//					consumer = new MqConsumer();
+//					consumer.BeginListener();     
+					
+					
+		           }
+		       }.start();
+
+				
+//				//tcp监听
+//				NettyServer.StartSocketServer();
+				
+				   //这是主进程
+		        System.out.println("主线程：" + Thread.currentThread().getName());
+		        Runnable r = new MyThread();
+		        Thread t = new Thread(r);
+		        t.start();
+		        
+		        //重发消息队列
+		        Runnable r1 = new SendRepeatThread();
+		        Thread t1 = new Thread(r1);
+		        t1.start();
+
+				// MqConsumer consumer = new MqConsumer();
+				// for (String stock : args) {
+				// Destination destination = consumer.getSession().createTopic("STOCKS."
+				// + stock);
+				// MessageConsumer messageConsumer =
+				// consumer.getSession().createConsumer(destination);
+				// messageConsumer.setMessageListener(new Listener());
+				// }
+	}
 	public Session getSession() {
 		return session;
+	}
+
+	@Override
+	public void controlEvent(int arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public Integer start(String[] arg0) {
+		// TODO Auto-generated method stub
+		
+		this.StartAPP();
+		//System.out.println("testService is running ...");
+		logger.info("testService is running ...");
+		WrapperManager.log(WrapperManager.WRAPPER_LOG_LEVEL_INFO, "MqConsumer start."); //记日志
+		  
+		return null;
+	}
+
+	@Override
+	public int stop(int arg0) {
+		// TODO Auto-generated method stub
+		 try {
+			close() ;
+		} catch (JMSException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return 0;
 	}
 	
 }
 
-class MyThreadConsumer implements Runnable {
-	 
-    @Override
-    public void run() {
-        System.out.println("第2个线程：" + Thread.currentThread().getName());         
-      //tcp监听
-		NettyServer.StartSocketServer();
-    }
-}
+//class MyThreadConsumer implements Runnable {
+//	 
+//    @Override
+//    public void run() {
+//        System.out.println("第2个线程：" + Thread.currentThread().getName());         
+//      //tcp监听
+//		NettyServer.StartSocketServer();
+//    }
+//}
 
 class MyThread implements Runnable {
 	 
@@ -149,7 +270,16 @@ class MyThread implements Runnable {
 //            public void run() {
 //                System.out.println("第3个线程：" + Thread.currentThread().getName());
 //            }
-//        }.start();
- 
+//        }.start(); 
+    }
+}
+
+class SendRepeatThread implements Runnable {
+	 
+    @Override
+    public void run() {
+        System.out.println("第3个线程：" + Thread.currentThread().getName());         
+      //tcp监听
+        NettyServerHandler.SendRepeat();
     }
 }

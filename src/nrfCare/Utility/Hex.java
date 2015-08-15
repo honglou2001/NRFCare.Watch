@@ -164,7 +164,8 @@ public class Hex {
         System.out.println("转换后：" + encodeStr);
         System.out.println("还原后：" + decodeStr);
     }
-    private static byte[] HexString2Bytes(String hexstr) {
+    
+    public static byte[] HexString2Bytes(String hexstr) {
 		byte[] b = new byte[hexstr.length() / 2];
 		int j = 0;
 		for (int i = 0; i < b.length; i++) {
@@ -285,6 +286,13 @@ public class Hex {
 		System.out.println(Integer.toHexString((int)bb[1] & 0x000000ff));
 		
 		int d= ComputeCRC(aa,aa.length);
+		
+		byte[] result = new byte[2];   
+		result[1] = (byte)((d >> 8) & 0xFF);
+		result[0] = (byte)(d & 0xFF);
+		
+		System.out.println(result[1]);
+		System.out.println(result[0]);
 		System.out.println(Integer.toHexString(d));
 	}
 }
