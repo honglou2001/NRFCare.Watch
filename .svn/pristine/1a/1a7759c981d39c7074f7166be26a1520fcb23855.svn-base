@@ -1,0 +1,298 @@
+package nrfCare.Utility;
+
+import java.io.UnsupportedEncodingException;
+import java.nio.ByteBuffer;
+
+
+/**
+ * @see byte数组与十六进制字符串互转
+ * @author Herman.Xiong
+ * @date 2014年5月5日 17:00:01
+ */
+public class Hex {
+ 
+    /**
+     * 用于建立十六进制字符的输出的小写字符数组
+     */
+    private static final char[] DIGITS_LOWER = { '0', '1', '2', '3', '4', '5',
+            '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+    /**
+     * 用于建立十六进制字符的输出的大写字符数组
+     */
+    private static final char[] DIGITS_UPPER = { '0', '1', '2', '3', '4', '5',
+            '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+ 
+    /**
+     * @see 将字节数组转换为十六进制字符数组
+     * @author Herman.Xiong
+     * @date 2014年5月5日 17:06:52
+     * @param data byte[]
+     * @return 十六进制char[]
+     */
+    public static char[] encodeHex(byte[] data) {
+        return encodeHex(data, true);
+    }
+ 
+    /**
+     * @see 将字节数组转换为十六进制字符数组
+     * @author Herman.Xiong
+     * @date 2014年5月5日 17:07:14
+     * @param data byte[]
+     * @param toLowerCase true传换成小写格式 ，false传换成大写格式
+     * @return 十六进制char[]
+     */
+    public static char[] encodeHex(byte[] data, boolean toLowerCase) {
+        return encodeHex(data, toLowerCase ? DIGITS_LOWER : DIGITS_UPPER);
+    }
+ 
+    /**
+     * @see 将字节数组转换为十六进制字符数组
+     * @author Herman.Xiong
+     * @date 2014年5月5日 17:07:31
+     * @param data byte[]
+     * @param toDigits 用于控制输出的char[]
+     * @return 十六进制char[]
+     */
+    protected static char[] encodeHex(byte[] data, char[] toDigits) {
+        int l = data.length;
+        char[] out = new char[l << 1];
+        for (int i = 0, j = 0; i < l; i++) {
+            out[j++] = toDigits[(0xF0 & data[i]) >>> 4];
+            out[j++] = toDigits[0x0F & data[i]];
+        }
+        return out;
+    }
+ 
+    /**
+     * @see 将字节数组转换为十六进制字符串
+     * @date 2014年5月5日 17:07:43
+     * @author Herman.Xiong
+     * @param data byte[]
+     * @return 十六进制String
+     */
+    public static String encodeHexStr(byte[] data) {
+        return encodeHexStr(data, true);
+    }
+ 
+    
+    /**
+     * @see 将字节数组转换为十六进制字符串
+     * @author Herman.Xiong
+     * @date 2014年5月5日 17:08:01
+     * @param data byte[]
+     * @param toLowerCase true 传换成小写格式 ， false 传换成大写格式
+     * @return 十六进制String
+     */
+    public static String encodeHexStr(byte[] data, boolean toLowerCase) {
+        return encodeHexStr(data, toLowerCase ? DIGITS_LOWER : DIGITS_UPPER);
+    }
+ 
+    /**
+     * @see 将字节数组转换为十六进制字符串
+     * @author Herman.Xiong
+     * @date 2014年5月5日 17:08:15
+     * @param data byte[]
+     * @param toDigits 用于控制输出的char[]
+     * @return 十六进制String
+     */
+    protected static String encodeHexStr(byte[] data, char[] toDigits) {
+        return new String(encodeHex(data, toDigits));
+    }
+ 
+    /**
+     * @see 将十六进制字符数组转换为字节数组
+     * @author Herman.Xiong
+     * @date 2014年5月5日 17:08:28
+     * @param data 十六进制char[]
+     * @return byte[]
+     * @throws RuntimeException 如果源十六进制字符数组是一个奇怪的长度，将抛出运行时异常
+     */
+    public static byte[] decodeHex(char[] data) {
+        int len = data.length;
+        if ((len & 0x01) != 0) {
+            throw new RuntimeException("未知的字符");
+        }
+        byte[] out = new byte[len >> 1];
+        for (int i = 0, j = 0; j < len; i++) {
+            int f = toDigit(data[j], j) << 4;
+            j++;
+            f = f | toDigit(data[j], j);
+            j++;
+            out[i] = (byte) (f & 0xFF);
+        }
+        return out;
+    }
+ 
+    /**
+     * @see 将十六进制字符转换成一个整数
+     * @author Herman.Xiong
+     * @date 2014年5月5日 17:08:46
+     * @param ch  十六进制char
+     * @param index 十六进制字符在字符数组中的位置
+     * @return 一个整数
+     * @throws RuntimeException 当ch不是一个合法的十六进制字符时，抛出运行时异常
+     */
+    protected static int toDigit(char ch, int index) {
+        int digit = Character.digit(ch, 16);
+        if (digit == -1) {
+            throw new RuntimeException("非法16进制字符 " + ch
+                    + " 在索引 " + index);
+        }
+        return digit;
+    }
+ 
+    /**
+     * @see 将byte[]数组转换为String字符串
+     * @author Herman.Xiong
+     * @date 2014年5月5日 17:15:42
+     * @param data byte数组
+     * @return String 转换后的字符串
+     */
+    public static String byteToArray(byte[]data){
+        String result="";
+        for (int i = 0; i < data.length; i++) {
+            result+=Integer.toHexString((data[i] & 0xFF) | 0x100).toUpperCase().substring(1, 3);
+        }
+        return result;
+    }
+     
+    public static void main1(String[] args) {	
+        String srcStr = "182.92.194.26:1000";
+        String encodeStr = encodeHexStr(srcStr.getBytes());
+        String decodeStr = new String(decodeHex(encodeStr.toCharArray()));
+        System.out.println("转换前：" + srcStr);
+        System.out.println("转换后：" + encodeStr);
+        System.out.println("还原后：" + decodeStr);
+    }
+    
+    public static byte[] HexString2Bytes(String hexstr) {
+		byte[] b = new byte[hexstr.length() / 2];
+		int j = 0;
+		for (int i = 0; i < b.length; i++) {
+			char c0 = hexstr.charAt(j++);
+			char c1 = hexstr.charAt(j++);
+			b[i] = (byte) ((parse(c0) << 4) | parse(c1));
+		}
+		return b;
+	}
+    private static int parse(char c) {
+		if (c >= 'a')
+			return (c - 'a' + 10) & 0x0f;
+		if (c >= 'A')
+			return (c - 'A' + 10) & 0x0f;
+		return (c - '0') & 0x0f;
+	}
+
+    public static String ByteBufferToString(ByteBuffer buffer)  
+            throws UnsupportedEncodingException {  
+  
+        buffer.flip();  
+        byte[] array = new byte[buffer.limit()];  
+        for (int i = 0; i < buffer.limit(); i++) {  
+            array[i] = buffer.get();  
+        }  
+        String content = new String(array, "utf8");  
+        array = null;  
+        return content;  
+  
+    }  
+  
+    public static ByteBuffer StringToByteBuffer(String content, int size)  
+            throws UnsupportedEncodingException {  
+        if (size <= 0) {  
+            System.err.println("invalid size");  
+            return null;  
+        }  
+        ByteBuffer buffer = ByteBuffer.allocate(size);  
+        buffer.put(content.getBytes("utf8"));  
+        return buffer;  
+    }  
+ 
+    public static int get_crc16 (byte[] bufData, int buflen, byte[] pcrc)
+	{
+		int ret = 0;
+		int CRC = 0x0000ffff;
+		int POLYNOMIAL = 0x0000a001;
+		int i, j;
+
+
+		if (buflen == 0)
+		{
+			return ret;
+		}
+		for (i = 0; i < buflen; i++)
+		{
+			CRC ^= ((int)bufData[i] & 0x000000ff);
+			for (j = 0; j < 8; j++)
+			{
+				if ((CRC & 0x00000001) != 0)
+				{
+					CRC >>= 1;
+					CRC ^= POLYNOMIAL;
+				}
+				else
+				{
+					CRC >>= 1;
+				}
+			}
+			//System.out.println(Integer.toHexString(CRC));
+		}
+		
+		System.out.println(Integer.toHexString(CRC));
+		pcrc[0] = (byte)(CRC & 0x00ff);
+		pcrc[1] = (byte)(CRC >> 8);
+
+		return ret;
+	}
+    
+	public static int ComputeCRC(byte[] val, int len)
+	{
+		
+	    long crc;
+	    long q;
+	    byte c;
+	    int i = 0;
+		
+	    crc = 0;
+	    for (i = 0; i < len; i++)
+	    {
+	        c = val[i];
+	        q = (crc ^ c) & 0x0f;
+	        crc = (crc >> 4) ^ (q * 0x1081);
+	        q = (crc ^ (c >> 4)) & 0xf;
+	        crc = (crc >> 4) ^ (q * 0x1081);
+	    }
+	    return (byte)crc << 8 | (byte)(crc >> 8);
+	}
+	/**
+	 * @param args
+	 */
+	public static void main(String[] args) {
+//		byte[] aa = {0x30,0x30,0x34,0x36,0x46,0x44,0x36,0x30,0x30,0x30,0x01,0x72,0x65,
+//				0x66,0x65,0x72,0x69,0x6E,0x66,0x6F,0x2E,0x63,0x73,0x76,0x00,0x00
+//				,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
+//				,0x00,0x00,0x00,0x01,(byte)0xf4,0x01};
+		byte[] aa = {0x24,0x24,0x00,(byte)0x86,(byte)0x80,0x68,0x00,0x00,0x10,0x01,0x22,(byte)0x99,0x55,0x7C,0x31,0x30,0x7C,0x31,0x30,0x30,0x7C,0x31,0x63,0x63,0x2C,0x30,0x2C,0x32,0x37,0x39,0x65,0x2C,0x64,0x66,0x35,0x2C,0x37,0x65,0x2C,0x32,0x34,0x61,0x34,0x2C,0x31,0x31,0x37,0x37,0x2C,0x37,0x39,0x2C,0x32,0x37,0x39,0x65,0x2C,0x31,0x30,0x34,0x33,0x2C,0x37,0x38,0x2C,0x32,0x37,0x39,0x65,0x2C,0x31,0x30,0x61,0x66,0x2C,0x37,0x35,0x2C,0x32,0x37,0x39,0x65,0x2C,0x65,0x37,0x66,0x2C,0x37,0x33,0x2C,0x32,0x37,0x39,0x65,0x2C,0x64,0x66,0x34,0x2C,0x37,0x31,0x2C,0x32,0x37,0x39,0x65,0x2C,0x31,0x33,0x35,0x37,0x2C,0x37,0x30,0x7C,0x30,0x30,0x30,0x30,0x7C,0x30,0x30,0x7C,0x30,0x36,0x30,0x7C,0x30,0x34,0x33};
+		//byte[] aa = {0x24,0x24,0x00,0x11,0x30,0x01,0x00,0x00,0x10,0x01,0x2,0x00,0x01};
+		//byte[] aa = {0x24,0x24,0x00,0x11,(byte) 0x80,0x68,0x00,0x00,0x10,0x01,0x22,0x00,0x01};
+		byte[] bb = new byte[3];
+		get_crc16(aa, aa.length, bb);
+		
+//		byte b1 = (byte) 0x80;
+//		
+//		System.out.println(Integer.toHexString((int)b1& 0x000000ff));
+		
+		System.out.println(Integer.toHexString((int)bb[0] & 0x000000ff));
+		System.out.println(Integer.toHexString((int)bb[1] & 0x000000ff));
+		
+		int d= ComputeCRC(aa,aa.length);
+		
+		byte[] result = new byte[2];   
+		result[1] = (byte)((d >> 8) & 0xFF);
+		result[0] = (byte)(d & 0xFF);
+		
+		System.out.println(result[1]);
+		System.out.println(result[0]);
+		System.out.println(Integer.toHexString(d));
+	}
+}
